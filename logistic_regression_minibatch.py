@@ -58,6 +58,7 @@ plt.xlabel("Iteration")
 plt.ylabel("Loss")
 plt.title("Training Loss")
 plt.grid()
+plt.savefig("training_loss.png")
 plt.show()
 
 #要画二维决策边界，我们需要选择两个特征进行可视化。这里我们选择前两个特征进行绘制。
@@ -74,9 +75,7 @@ def plot_decision_boundary(X, y, w):
     plt.ylabel('Feature 2')
     plt.title('Decision Boundary')
     plt.grid()
+    plt.savefig("decision_boundary.png")
     plt.show()
 
 plot_decision_boundary(X_train[:, :2], y_train, w[:2])
-#保存两张图片到工作区
-plt.savefig("training_loss.png")
-plt.savefig("decision_boundary.png")
