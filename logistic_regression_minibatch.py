@@ -19,7 +19,8 @@ y_test = y[int(len(y)*0.8):]
 
 X_train = (X_train_1 - X_train_1.mean(axis=0)) / X_train_1.std(axis=0) # 归一化
 X_test = (X_test - X_train_1.mean(axis=0)) / X_train_1.std(axis=0) # 归一化
-
+X_train = np.column_stack([X_train, np.ones(X_train.shape[0])]) # 添加偏置项
+X_test = np.column_stack([X_test, np.ones(X_test.shape[0])]) #
 #编程基础课给出简洁的逻辑回归实现，直接套用公式X.T @(f(X @ w) - y)即可
 
 def f(X,w):
@@ -29,7 +30,7 @@ def f(X,w):
 def gradient(X,y,w):
     return X.T @ (f(X,w) - y)/len(y)
 
-def train(X,y,lr=0.01,epochs=100,batch_size=32,seed = 40):
+def train(X,y,lr=0.01,epochs=110,batch_size=32,seed = 40):
     n, d = X.shape
     rng = np.random.default_rng(seed) #这是初始化随机种子
     w = np.zeros(d)
@@ -79,7 +80,7 @@ def plot_decision_boundary(X, y, w):
     plt.title('Decision Boundary')
     plt.grid()
     plt.savefig("decision_boundary.png")
-    plt.show()
+    #plt.show()
 
 plot_decision_boundary(X_train[:, :2], y_train, w[:2])
 
@@ -114,7 +115,7 @@ def plot_tsne(X, y, title="t-SNE", filename="tsne.png", pca_dim=30, perplexity=3
     plt.legend(title='class')
     plt.grid(True)
     plt.savefig(filename)
-    plt.show()
+    #plt.show()
 
 # 调用 t-SNE 可视化（训练集与测试集）
 plot_tsne(X_train, y_train, title='t-SNE of Train Set', filename='tsne_train.png')
@@ -140,7 +141,7 @@ def plot_pca_k(X_train, X_test, y_train, y_test, w, k=2):
         plt.grid(True)
         fname_train = f'pca_k2_train.png'
         plt.savefig(fname_train)
-        plt.show()
+        #plt.show()
 
         # 2D 散点图（测试集）
         plt.figure(figsize=(7,6))
@@ -150,7 +151,7 @@ def plot_pca_k(X_train, X_test, y_train, y_test, w, k=2):
         plt.grid(True)
         fname_test = f'pca_k2_test.png'
         plt.savefig(fname_test)
-        plt.show()
+        #plt.show()
 
         # 近似决策边界：将原始权重投影到 PCA 空间
         # pca.components_ shape: (k, d), w shape: (d,)
@@ -173,7 +174,7 @@ def plot_pca_k(X_train, X_test, y_train, y_test, w, k=2):
         plt.grid(True)
         fname_dec = f'pca_k2_decision.png'
         plt.savefig(fname_dec)
-        plt.show()
+        #plt.show()
 
     elif k == 3:
         # 3D 散点图（训练集）
@@ -184,7 +185,7 @@ def plot_pca_k(X_train, X_test, y_train, y_test, w, k=2):
         ax.set_title('PCA (k=3) - train')
         fname3_train = f'pca_k3_train.png'
         plt.savefig(fname3_train)
-        plt.show()
+        #plt.show()
 
         # 3D 散点图（测试集）
         fig = plt.figure(figsize=(8,6))
@@ -194,7 +195,7 @@ def plot_pca_k(X_train, X_test, y_train, y_test, w, k=2):
         ax.set_title('PCA (k=3) - test')
         fname3_test = f'pca_k3_test.png'
         plt.savefig(fname3_test)
-        plt.show()
+        
 
     else:
         print('Unsupported k for plotting')
