@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from sklearn.datasets import load_breast_cancer# 导入乳腺癌数据集
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
+from mpl_toolkits.mplot3d import Axes3D
 
 data = load_breast_cancer()
 X = data.data # 特征矩阵，形状 (n_samples, n_features)
@@ -118,3 +119,87 @@ def plot_tsne(X, y, title="t-SNE", filename="tsne.png", pca_dim=30, perplexity=3
 # 调用 t-SNE 可视化（训练集与测试集）
 plot_tsne(X_train, y_train, title='t-SNE of Train Set', filename='tsne_train.png')
 plot_tsne(X_test, y_test, title='t-SNE of Test Set', filename='tsne_test.png')
+
+# PCA 可视化：生成 k=2 的 2D 散点图并近似绘制决策边界，和 k=3 的 3D 散点图
+def plot_pca_k(X_train, X_test, y_train, y_test, w, k=2):
+    pca = PCA(n_components=k, random_state=42)
+    X_train_pca = pca.fit_transform(X_train)
+    X_test_pca = pca.transform(X_test)
+
+    # 打印解释方差
+    evr = pca.explained_variance_ratio_
+    print(f"PCA k={k} explained_variance_ratio_:", evr)
+    print(f"PCA k={k} cumulative explained variance:", evr.sum())
+
+    if k == 2:
+        # 2D 散点图（训练集）
+        plt.figure(figsize=(7,6))
+        plt.scatter(X_train_pca[:,0], X_train_pca[:,1], c=y_train, cmap='tab10', s=40, edgecolors='k')
+        plt.xlabel('PC1'); plt.ylabel('PC2')
+        plt.title(f'PCA (k=2) - train')
+        plt.grid(True)
+        fname_train = f'pca_k2_train.png'
+        plt.savefig(fname_train)
+        plt.show()
+
+        # 2D 散点图（测试集）
+        plt.figure(figsize=(7,6))
+        plt.scatter(X_test_pca[:,0], X_test_pca[:,1], c=y_test, cmap='tab10', s=40, edgecolors='k')
+        plt.xlabel('PC1'); plt.ylabel('PC2')
+        plt.title(f'PCA (k=2) - test')
+        plt.grid(True)
+        fname_test = f'pca_k2_test.png'
+        plt.savefig(fname_test)
+        plt.show()
+
+        # 近似决策边界：将原始权重投影到 PCA 空间
+        # pca.components_ shape: (k, d), w shape: (d,)
+        w_pca = pca.components_ @ w
+
+        # 网格并绘制概率等高线
+        xx, yy = np.meshgrid(
+            np.linspace(X_train_pca[:,0].min()-1, X_train_pca[:,0].max()+1, 200),
+            np.linspace(X_train_pca[:,1].min()-1, X_train_pca[:,1].max()+1, 200)
+        )
+        grid = np.c_[xx.ravel(), yy.ravel()]
+        z = 1 / (1 + np.exp(- (grid @ w_pca)))
+        Z = z.reshape(xx.shape)
+
+        plt.figure(figsize=(7,6))
+        plt.contourf(xx, yy, Z, levels=50, cmap='RdBu', alpha=0.6)
+        plt.scatter(X_train_pca[:,0], X_train_pca[:,1], c=y_train, cmap='tab10', s=40, edgecolors='k')
+        plt.title('PCA (k=2) + approximate decision boundary')
+        plt.xlabel('PC1'); plt.ylabel('PC2')
+        plt.grid(True)
+        fname_dec = f'pca_k2_decision.png'
+        plt.savefig(fname_dec)
+        plt.show()
+
+    elif k == 3:
+        # 3D 散点图（训练集）
+        fig = plt.figure(figsize=(8,6))
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(X_train_pca[:,0], X_train_pca[:,1], X_train_pca[:,2], c=y_train, cmap='tab10', s=30, edgecolors='k')
+        ax.set_xlabel('PC1'); ax.set_ylabel('PC2'); ax.set_zlabel('PC3')
+        ax.set_title('PCA (k=3) - train')
+        fname3_train = f'pca_k3_train.png'
+        plt.savefig(fname3_train)
+        plt.show()
+
+        # 3D 散点图（测试集）
+        fig = plt.figure(figsize=(8,6))
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(X_test_pca[:,0], X_test_pca[:,1], X_test_pca[:,2], c=y_test, cmap='tab10', s=30, edgecolors='k')
+        ax.set_xlabel('PC1'); ax.set_ylabel('PC2'); ax.set_zlabel('PC3')
+        ax.set_title('PCA (k=3) - test')
+        fname3_test = f'pca_k3_test.png'
+        plt.savefig(fname3_test)
+        plt.show()
+
+    else:
+        print('Unsupported k for plotting')
+
+
+# 生成 PCA 可视化（k=2 和 k=3）并保存图片
+plot_pca_k(X_train, X_test, y_train, y_test, w, k=2)
+plot_pca_k(X_train, X_test, y_train, y_test, w, k=3)
