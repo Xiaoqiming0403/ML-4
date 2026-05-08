@@ -10,6 +10,12 @@ X = data.data # 特征矩阵，形状 (n_samples, n_features)
 y = data.target # 标签向量，0/1
 
 #数据处理（归一化，分为minibatch）
+alpha = 0.4
+beta = 0.1
+
+def loss(X,y,w):
+    return -np.mean(y * np.log(np.clip(f(X,w), 1e-15, 1-1e-15)) + (1-y) * np.log(np.clip(1-f(X,w), 1e-15, 1-1e-15)))
+
 
 
 X_train_1 = X[:int(len(X)*0.8)]
@@ -30,7 +36,7 @@ def f(X,w):
 def gradient(X,y,w):
     return X.T @ (f(X,w) - y)/len(y)
 
-def train(X,y,lr=0.01,epochs=110,batch_size=32,seed = 40):
+def train(X,y,lr=0.1,epochs=110,batch_size=32,seed = 40):
     n, d = X.shape
     rng = np.random.default_rng(seed) #这是初始化随机种子
     w = np.zeros(d)
@@ -46,9 +52,12 @@ def train(X,y,lr=0.01,epochs=110,batch_size=32,seed = 40):
             Xb = X_shuffled[i:i+batch_size]
             yb = y_shuffled[i:i+batch_size]
             g = gradient(Xb,yb,w)
-            w -= lr * g
+            if loss(Xb,yb,w-lr*g) > loss(Xb,yb,w) - alpha*lr*np.dot(g,g):
+                lr = lr*beta
+            w = w - lr*g
 
         losses.append(-np.mean(y * np.log(np.clip(f(X,w), 1e-15, 1-1e-15)) + (1-y) * np.log(np.clip(1-f(X,w), 1e-15, 1-1e-15))))
+        
     return w, losses
 
 w, losses = train(X_train,y_train)
